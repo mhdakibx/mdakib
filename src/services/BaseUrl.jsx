@@ -1,0 +1,1 @@
+export const BASE_URL = "https://portfolio-api-q65b.onrender.com";
