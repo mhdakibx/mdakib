@@ -39,7 +39,7 @@ const Projects = () => {
     return (
         <section
             id="projects"
-            className="relative overflow-hidden bg-base-100 px-4 pb-10 pt-4 text-base-content sm:px-6 sm:pb-12 sm:pt-6 md:px-8 lg:px-10 xl:px-12"
+            className="relative overflow-hidden bg-base-100 px-4 text-base-content sm:px-6 sm:pb-12 sm:pt-6 md:px-8 lg:px-10 xl:px-12"
         >
             {/* ================= BACKGROUND ================= */}
 
