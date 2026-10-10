@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import {
     ArrowRight,
     Eye,
@@ -7,7 +7,6 @@ import {
     LockKeyhole,
     Mail,
 } from "lucide-react";
-
 import { useAuth } from "../contexts/AuthProvider";
 
 const Login = () => {
@@ -25,9 +24,7 @@ const Login = () => {
 
         if (!email.trim()) {
             newErrors.email = "Email is required";
-        } else if (
-            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-        ) {
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             newErrors.email = "Enter a valid email address";
         }
 
@@ -39,7 +36,6 @@ const Login = () => {
         }
 
         setErrors(newErrors);
-
         return Object.keys(newErrors).length === 0;
     };
 
@@ -52,17 +48,22 @@ const Login = () => {
 
         setLoading(true);
 
-        const success = await login(email, password);
+        try {
+            const success = await login(email, password);
 
-        setLoading(false);
-
-        if (success) {
-            navigate("/admin/dashboard");
+            if (success) {
+                navigate("/admin/dashboard");
+            }
+        } catch (error) {
+            console.error("Login error:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="relative min-h-screen overflow-hidden bg-base-200">
+        <div className="relative min-h-screen overflow-hidden bg-base-200 text-base-content">
+
             {/* Background decoration */}
             <div className="pointer-events-none absolute -left-32 -top-32 h-72 w-72 rounded-full bg-primary/10 blur-3xl sm:h-80 sm:w-80" />
 
@@ -70,6 +71,7 @@ const Login = () => {
 
             {/* Main */}
             <div className="relative flex min-h-screen items-center justify-center px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+
                 <div className="w-full max-w-md">
 
                     {/* Heading */}
@@ -98,7 +100,10 @@ const Login = () => {
 
                             {/* Email */}
                             <div>
-                                <label className="mb-2 block text-sm font-medium">
+                                <label
+                                    htmlFor="email"
+                                    className="mb-2 block text-sm font-medium"
+                                >
                                     Email address
                                 </label>
 
@@ -109,22 +114,23 @@ const Login = () => {
                                     />
 
                                     <input
+                                        id="email"
                                         type="email"
+                                        autoComplete="username"
                                         placeholder="admin@example.com"
                                         value={email}
                                         disabled={loading}
                                         onChange={(e) => {
                                             setEmail(e.target.value);
-
-                                            setErrors({
-                                                ...errors,
+                                            setErrors((prev) => ({
+                                                ...prev,
                                                 email: "",
-                                            });
+                                            }));
                                         }}
-                                        className={`input input-bordered h-12 w-full rounded-xl pl-11 pr-4 text-sm ${
+                                        className={`input input-bordered h-12 w-full rounded-xl pl-11 pr-4 text-sm outline-none focus:outline-none focus:ring-0 focus:shadow-none ${
                                             errors.email
                                                 ? "input-error"
-                                                : ""
+                                                : "focus:border-primary"
                                         }`}
                                     />
                                 </div>
@@ -139,7 +145,10 @@ const Login = () => {
                             {/* Password */}
                             <div>
                                 <div className="mb-2 flex items-center justify-between gap-3">
-                                    <label className="text-sm font-medium">
+                                    <label
+                                        htmlFor="password"
+                                        className="text-sm font-medium"
+                                    >
                                         Password
                                     </label>
 
@@ -155,26 +164,27 @@ const Login = () => {
                                     />
 
                                     <input
+                                        id="password"
                                         type={
                                             showPassword
                                                 ? "text"
                                                 : "password"
                                         }
+                                        autoComplete="current-password"
                                         placeholder="Enter your password"
                                         value={password}
                                         disabled={loading}
                                         onChange={(e) => {
                                             setPassword(e.target.value);
-
-                                            setErrors({
-                                                ...errors,
+                                            setErrors((prev) => ({
+                                                ...prev,
                                                 password: "",
-                                            });
+                                            }));
                                         }}
-                                        className={`input input-bordered h-12 w-full rounded-xl pl-11 pr-12 text-sm ${
+                                        className={`input input-bordered h-12 w-full rounded-xl pl-11 pr-12 text-sm outline-none focus:outline-none focus:ring-0 focus:shadow-none ${
                                             errors.password
                                                 ? "input-error"
-                                                : ""
+                                                : "focus:border-primary"
                                         }`}
                                     />
 
@@ -183,9 +193,7 @@ const Login = () => {
                                         type="button"
                                         disabled={loading}
                                         onClick={() =>
-                                            setShowPassword(
-                                                !showPassword
-                                            )
+                                            setShowPassword((prev) => !prev)
                                         }
                                         className="absolute right-3 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-base-content/70 transition hover:bg-base-200 hover:text-base-content disabled:cursor-not-allowed disabled:opacity-50"
                                         aria-label={
@@ -237,9 +245,18 @@ const Login = () => {
                     </div>
 
                     {/* Bottom */}
-                    <p className="mt-5 px-4 text-center text-[10px] text-base-content/40 sm:mt-6 sm:text-xs">
-                        Personal portfolio administration
-                    </p>
+                    <div className="mt-5 px-4 text-center sm:mt-6">
+                        <Link
+                            to="/"
+                            className="text-xs text-base-content/50 transition-colors hover:text-primary"
+                        >
+                            ← Back to portfolio
+                        </Link>
+
+                        <p className="mt-3 text-[10px] text-base-content/40 sm:text-xs">
+                            Personal portfolio administration
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -247,3 +264,4 @@ const Login = () => {
 };
 
 export default Login;
+
