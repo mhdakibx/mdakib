@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Link, NavLink } from "react-router";
-import { Menu, X, UserRound } from "lucide-react";
+import {
+    Link,
+    NavLink,
+    useLocation,
+    useNavigate,
+} from "react-router";
 
+import { Menu, X, UserRound } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { BASE_URL } from "../services/BaseUrl";
 
@@ -16,6 +21,9 @@ const Navbar = () => {
 
     const [imageError, setImageError] = useState(false);
     const [imageLoading, setImageLoading] = useState(true);
+
+    const location = useLocation();
+    const navigate = useNavigate();
 
     const navLinks = [
         { name: "Home", path: "/", id: "home" },
@@ -82,16 +90,43 @@ const Navbar = () => {
         return `${BASE_URL.replace(/\/+$/, "")}/${image.replace(/^\/+/, "")}`;
     };
 
+    // Scroll to top and navigate home when logo is clicked
+    const handleLogoClick = (e) => {
+        e.preventDefault();
+
+        setIsOpen(false);
+        setActiveSection("home");
+
+        if (location.pathname !== "/") {
+            navigate("/");
+        } else {
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth",
+            });
+        }
+    };
+
     // Auto update active navigation while scrolling
     useEffect(() => {
+        // Only track homepage sections on the homepage
+        if (location.pathname !== "/") {
+            setActiveSection("");
+            return;
+        }
+
         const handleScroll = () => {
             const scrollPosition = window.scrollY + 200;
+
             let currentSection = "home";
 
             navLinks.forEach((link) => {
                 const section = document.getElementById(link.id);
 
-                if (section && scrollPosition >= section.offsetTop) {
+                if (
+                    section &&
+                    scrollPosition >= section.offsetTop
+                ) {
                     currentSection = link.id;
                 }
             });
@@ -105,7 +140,17 @@ const Navbar = () => {
         return () => {
             window.removeEventListener("scroll", handleScroll);
         };
-    }, []);
+    }, [location.pathname]);
+
+    // Scroll to top when navigating to homepage from another route
+    useEffect(() => {
+        if (location.pathname === "/") {
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth",
+            });
+        }
+    }, [location.pathname]);
 
     // Close mobile menu on desktop resize
     useEffect(() => {
@@ -138,15 +183,13 @@ const Navbar = () => {
 
     return (
         <nav className="fixed left-1/2 top-4 z-50 w-[calc(100%-24px)] max-w-6xl -translate-x-1/2 sm:top-5 sm:w-[calc(100%-40px)]">
-
             {/* Main Navbar */}
             <div className="flex items-center justify-between gap-3">
-
                 {/* Profile Logo + Name */}
                 <Link
                     to="/"
                     aria-label="Go to homepage"
-                    onClick={() => handleNavClick("home")}
+                    onClick={handleLogoClick}
                     className="group flex min-w-0 shrink-0 items-center gap-2.5 sm:gap-3"
                 >
                     {/* Profile Image */}
@@ -194,7 +237,6 @@ const Navbar = () => {
 
                 {/* Right Side */}
                 <div className="flex shrink-0 items-center gap-1.5">
-
                     {/* Theme Toggle */}
                     <ThemeToggle />
 
@@ -249,4 +291,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-
