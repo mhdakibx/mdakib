@@ -6,6 +6,7 @@ import router from './routes/Routes'
 import { Toaster } from 'react-hot-toast';
 import AuthProvider from './contexts/AuthProvider';
 import ThemeProvider from './contexts/ThemeProvider';
+import { Analytics } from '@vercel/analytics/react';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -15,5 +16,7 @@ createRoot(document.getElementById('root')).render(
         <Toaster/>
       </AuthProvider>
     </ThemeProvider>
+
+    <Analytics/>
   </StrictMode>,
 )
