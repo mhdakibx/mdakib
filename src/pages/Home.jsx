@@ -1,60 +1,56 @@
-import React, { useEffect } from "react";
-import { useLocation } from "react-router";
+import { useEffect } from "react";
 
-import Hero from "./../components/Home/Hero";
-import About from "./../components/Home/About";
-import Projects from "./../components/Home/Projects";
-import Skills from "./../components/Home/Skills";
-import Contact from "./../components/Home/Contact";
+import Hero from "../components/Home/Hero";
+import About from "../components/Home/About";
+import Projects from "../components/Home/Projects";
+import Skills from "../components/Home/Skills";
+import Contact from "../components/Home/Contact";
 
 const Home = () => {
-    const location = useLocation();
-
     useEffect(() => {
-        const section = location.pathname.replace("/", "");
+        const sectionId = window.location.hash.replace("#", "");
 
-        if (!section) {
+        if (!sectionId) {
             window.scrollTo({
                 top: 0,
-                behavior: "smooth",
+                behavior: "instant",
             });
 
             return;
         }
 
-        const element = document.getElementById(section);
-
-        if (element) {
-            element.scrollIntoView({
+        requestAnimationFrame(() => {
+            document.getElementById(sectionId)?.scrollIntoView({
                 behavior: "smooth",
                 block: "start",
             });
-        }
-    }, [location.pathname]);
+        });
+    }, []);
 
     return (
-        <div>
-            <section id="home">
+        <main>
+            <section id="home" className="scroll-mt-28">
                 <Hero />
             </section>
 
-            <section id="about">
+            <section id="about" className="scroll-mt-28">
                 <About />
             </section>
 
-            <section id="projects">
+            <section id="projects" className="scroll-mt-28">
                 <Projects />
             </section>
 
-            <section id="skills">
+            <section id="skills" className="scroll-mt-28">
                 <Skills />
             </section>
 
-            <section id="contact">
+            <section id="contact" className="scroll-mt-28">
                 <Contact />
             </section>
-        </div>
+        </main>
     );
 };
 
 export default Home;
+
