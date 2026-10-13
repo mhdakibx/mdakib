@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router";
-
-import { Menu, X, UserRound } from "lucide-react";
-
+import { Menu, X, UserRound, LayoutDashboard } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { BASE_URL } from "../services/BaseUrl";
+import { useAuth } from "../contexts/AuthProvider";
 
 const NAV_LINKS = [
     { name: "Home", id: "home" },
@@ -18,6 +17,9 @@ const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [activeSection, setActiveSection] = useState("home");
 
+    const { authUser } = useAuth();
+    const location = useLocation();
+
     const [profile, setProfile] = useState({
         name: "Mohammad Akib",
         profileImage: "",
@@ -25,7 +27,9 @@ const Navbar = () => {
 
     const [imageError, setImageError] = useState(false);
 
-    const location = useLocation();
+    // Check whether the logged-in user is an admin
+    const isAdmin =
+        authUser?.role?.toLowerCase() === "admin";
 
     // Fetch profile from API
     useEffect(() => {
@@ -33,9 +37,12 @@ const Navbar = () => {
 
         const fetchProfile = async () => {
             try {
-                const response = await fetch(`${BASE_URL}/api/profile`, {
-                    signal: controller.signal,
-                });
+                const response = await fetch(
+                    `${BASE_URL}/api/profile`,
+                    {
+                        signal: controller.signal,
+                    }
+                );
 
                 if (!response.ok) {
                     throw new Error("Failed to fetch profile");
@@ -104,7 +111,7 @@ const Navbar = () => {
         });
     };
 
-    // Handle navigation without changing the URL hash
+    // Handle navigation
     const handleNavClick = (event, id) => {
         event.preventDefault();
 
@@ -147,7 +154,10 @@ const Navbar = () => {
                 NAV_LINKS.forEach(({ id }) => {
                     const section = document.getElementById(id);
 
-                    if (section && scrollPosition >= section.offsetTop) {
+                    if (
+                        section &&
+                        scrollPosition >= section.offsetTop
+                    ) {
                         currentSection = id;
                     }
                 });
@@ -171,7 +181,7 @@ const Navbar = () => {
         };
     }, [location.pathname]);
 
-    // Close mobile menu when leaving the page
+    // Close mobile menu when route changes
     useEffect(() => {
         setIsOpen(false);
     }, [location.pathname]);
@@ -188,6 +198,7 @@ const Navbar = () => {
     return (
         <nav className="fixed left-1/2 top-4 z-50 w-[calc(100%-24px)] max-w-6xl -translate-x-1/2 sm:top-5 sm:w-[calc(100%-40px)]">
             <div className="flex items-center justify-between gap-3">
+
                 {/* Logo and Profile */}
                 <Link
                     to="/"
@@ -240,12 +251,31 @@ const Navbar = () => {
 
                 {/* Right Side */}
                 <div className="flex shrink-0 items-center gap-1.5">
+
+                    {/* Admin Dashboard — Visible only to admin */}
+                    {isAdmin && (
+                        <Link
+                            to="/admin/dashboard"
+                            title="Admin Dashboard"
+                            aria-label="Admin Dashboard"
+                            className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-base-content/10 bg-base-100/90 px-3 text-sm font-medium text-base-content shadow-sm transition-all duration-300 hover:border-primary/40 hover:bg-base-200 hover:text-primary sm:px-4"
+                        >
+                            <LayoutDashboard size={17} />
+                            <span className="hidden sm:inline">
+                                Dashboard
+                            </span>
+                        </Link>
+                    )}
+
+                    {/* Theme Toggle */}
                     <ThemeToggle />
 
                     {/* Mobile Menu Button */}
                     <button
                         type="button"
-                        onClick={() => setIsOpen((previous) => !previous)}
+                        onClick={() =>
+                            setIsOpen((previous) => !previous)
+                        }
                         className="btn btn-circle btn-ghost border border-base-content/10 bg-base-100/90 shadow-sm transition-all hover:border-primary/40 hover:bg-base-200 md:hidden"
                         aria-label={isOpen ? "Close menu" : "Open menu"}
                         aria-expanded={isOpen}
@@ -269,6 +299,7 @@ const Navbar = () => {
             >
                 <div className="overflow-hidden">
                     <div className="rounded-2xl border border-base-content/10 bg-base-100/95 p-2.5 shadow-xl shadow-base-content/5 backdrop-blur-xl">
+
                         {NAV_LINKS.map((link) => (
                             <a
                                 key={link.id}
@@ -285,6 +316,21 @@ const Navbar = () => {
                                 {link.name}
                             </a>
                         ))}
+
+                        {/* Dashboard inside mobile menu */}
+                        {isAdmin && (
+                            <Link
+                                to="/admin/dashboard"
+                                onClick={() => setIsOpen(false)}
+                                className="mt-2 flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm font-semibold text-base-content transition-all hover:bg-primary/10"
+                            >
+                                <LayoutDashboard
+                                    size={18}
+                                    className="text-primary"
+                                />
+                                Admin Dashboard
+                            </Link>
+                        )}
                     </div>
                 </div>
             </div>
@@ -293,4 +339,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-

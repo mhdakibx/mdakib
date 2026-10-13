@@ -6,6 +6,8 @@ import { BASE_URL } from "../../services/BaseUrl";
 const Hero = () => {
     const [profile, setProfile] = useState(null);
     const [cover, setCover] = useState(null);
+    const [imageError, setImageError] = useState(false);
+    const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
     useEffect(() => {
         const fetchData = async () => {
@@ -24,6 +26,7 @@ const Hero = () => {
 
                 setProfile(profileData.profile);
                 setCover(coverData.cover);
+                setImageError(false);
             } catch (error) {
                 console.error("Hero data fetch error:", error);
             }
@@ -31,6 +34,26 @@ const Hero = () => {
 
         fetchData();
     }, []);
+
+    const handleMouseMove = (event) => {
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            return;
+        }
+
+        const rect = event.currentTarget.getBoundingClientRect();
+
+        const x = (event.clientX - rect.left) / rect.width;
+        const y = (event.clientY - rect.top) / rect.height;
+
+        setTilt({
+            x: (0.5 - y) * 10,
+            y: (x - 0.5) * 10,
+        });
+    };
+
+    const resetTilt = () => {
+        setTilt({ x: 0, y: 0 });
+    };
 
     const socialLinks = [
         {
@@ -54,13 +77,11 @@ const Hero = () => {
             <div className="pointer-events-none absolute left-1/2 top-1/3 h-64 w-64 -translate-x-1/2 rounded-full bg-base-content/5 blur-3xl sm:h-80 sm:w-80" />
 
             <div className="mx-auto flex min-h-screen w-full max-w-7xl items-center px-5 py-28 sm:px-8 sm:py-32 lg:px-10 xl:px-12">
-
                 <div className="grid w-full items-center gap-12 md:gap-14 lg:grid-cols-[80px_minmax(0,1fr)_320px] lg:gap-8 xl:grid-cols-[90px_minmax(0,1fr)_420px] xl:gap-10">
 
                     {/* Social Links */}
                     <div className="order-3 flex justify-center lg:order-1 lg:justify-start">
                         <div className="flex items-center gap-3 lg:flex-col lg:gap-4">
-
                             {socialLinks.map((social) => {
                                 const Icon = social.icon;
 
@@ -82,13 +103,11 @@ const Hero = () => {
                                     </a>
                                 );
                             })}
-
                         </div>
                     </div>
 
-                    {/* Main Content */}
+                    {/* Main Content — Unchanged */}
                     <div className="order-2 min-w-0 text-center lg:text-left">
-
                         <p className="mb-3 text-xs font-medium uppercase tracking-[0.25em] opacity-50 sm:text-sm">
                             Hello, I'm
                         </p>
@@ -126,53 +145,144 @@ const Hero = () => {
                                 />
                             </a>
                         </div>
-
                     </div>
 
-                    {/* Cover */}
+                    {/* Animated Profile Card */}
                     <div className="order-1 flex justify-center lg:order-3 lg:justify-center">
+                        <div
+                            className="profile-float relative w-full max-w-52 sm:max-w-60 md:max-w-[256px] lg:max-w-[288px] xl:max-w-[320px]"
+                            onMouseMove={handleMouseMove}
+                            onMouseLeave={resetTilt}
+                            style={{
+                                perspective: "1000px",
+                            }}
+                        >
+                            {/* Animated Background Glow */}
+                            <div className="profile-glow pointer-events-none absolute -inset-5 rounded-[2.5rem] bg-base-content/6 blur-2xl sm:-inset-7" />
 
-                        <div className="relative">
+                            {/* Top Right Corner */}
+                            <div className="pointer-events-none absolute -right-3 -top-3 z-10 h-16 w-16 rounded-tr-[1.75rem] border-r-2 border-t-2 border-base-content/30 transition-all duration-500 sm:-right-4 sm:-top-4 sm:h-20 sm:w-20" />
 
-                            {/* Outer Shape */}
-                            <div className="absolute -inset-3 rounded-[42%_58%_55%_45%/48%_42%_58%_52%] border border-base-content/15 sm:-inset-4" />
+                            {/* Bottom Left Corner */}
+                            <div className="pointer-events-none absolute -bottom-3 -left-3 z-10 h-16 w-16 rounded-bl-[1.75rem] border-b-2 border-l-2 border-base-content/30 transition-all duration-500 sm:-bottom-4 sm:-left-4 sm:h-20 sm:w-20" />
 
-                            {/* Second Shape */}
-                            <div className="absolute -inset-6 rounded-[58%_42%_45%_55%/42%_58%_48%_52%] border border-base-content/10 sm:-inset-8" />
+                            {/* Main Image Card */}
+                            <div
+                                className="profile-card group relative aspect-square w-full overflow-hidden rounded-[1.75rem] border border-base-content/15 bg-base-200 p-1.5 shadow-xl shadow-base-content/8 sm:rounded-4xl sm:p-2"
+                                style={{
+                                    transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
+                                    transition:
+                                        "transform 180ms ease-out, box-shadow 400ms ease, border-color 400ms ease",
+                                    transformStyle: "preserve-3d",
+                                }}
+                            >
+                                {/* Image Wrapper */}
+                                <div className="relative h-full w-full overflow-hidden rounded-[1.4rem] bg-base-300 sm:rounded-[1.6rem]">
+                                    {cover?.image && !imageError ? (
+                                        <img
+                                            src={cover.image}
+                                            alt={
+                                                cover.title ||
+                                                profile?.name ||
+                                                "Mohammad Akib"
+                                            }
+                                            className="profile-image h-full w-full object-cover"
+                                            style={{
+                                                objectPosition: "center 25%",
+                                            }}
+                                            loading="eager"
+                                            fetchPriority="high"
+                                            decoding="async"
+                                            onError={() => setImageError(true)}
+                                        />
+                                    ) : (
+                                        <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-base-200 px-4 text-center">
+                                            <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-base-content/10 bg-base-100 text-base-content/40">
+                                                <span className="text-2xl font-bold">
+                                                    A
+                                                </span>
+                                            </div>
 
-                            {/* Image */}
-                            <div className="relative h-52 w-52 overflow-hidden rounded-[42%_58%_55%_45%/48%_42%_58%_52%] border border-base-content/30 bg-base-200 sm:h-60 sm:w-60 md:h-64 md:w-64 lg:h-72 lg:w-72 xl:h-80 xl:w-80">
-
-                                {cover?.image ? (
-                                    <img
-                                        src={cover.image}
-                                        alt={
-                                            cover.title ||
-                                            profile?.name ||
-                                            "Mohammad Akib"
-                                        }
-                                        className="h-full w-full object-cover"
-                                    />
-                                ) : (
-                                    <div className="flex h-full w-full items-center justify-center bg-base-200">
-                                        <span className="text-sm opacity-40">
-                                            Cover Image
-                                        </span>
-                                    </div>
-                                )}
-
+                                            <span className="text-xs text-base-content/50">
+                                                {imageError
+                                                    ? "Image could not be loaded"
+                                                    : "Upload your image from Admin"}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-
-                            {/* Decorative Dots */}
-                            <span className="absolute -right-2 top-8 h-2.5 w-2.5 rounded-full bg-base-content sm:-right-3 sm:h-3 sm:w-3" />
-
-                            <span className="absolute -bottom-2 left-8 h-2 w-2 rounded-full bg-base-content/50 sm:-bottom-3 sm:left-12 sm:h-2.5 sm:w-2.5" />
-
                         </div>
                     </div>
-
                 </div>
             </div>
+
+            {/* Card Animation Styles */}
+            <style>{`
+                .profile-float {
+                    animation: profileFloat 5s ease-in-out infinite;
+                    will-change: transform;
+                }
+
+                .profile-card {
+                    will-change: transform;
+                    backface-visibility: hidden;
+                }
+
+                .profile-image {
+                    transition: transform 700ms cubic-bezier(0.2, 0.7, 0.3, 1);
+                    backface-visibility: hidden;
+                }
+
+                .profile-card:hover {
+                    border-color: oklch(var(--bc) / 0.3);
+                    box-shadow: 0 25px 60px -20px oklch(var(--bc) / 0.2);
+                }
+
+                .profile-card:hover .profile-image {
+                    transform: scale(1.06);
+                }
+
+                .profile-glow {
+                    animation: glowPulse 4s ease-in-out infinite;
+                }
+
+                .profile-float:hover {
+                    animation-play-state: paused;
+                }
+
+                @keyframes profileFloat {
+                    0%, 100% {
+                        transform: translateY(0px);
+                    }
+                    50% {
+                        transform: translateY(-12px);
+                    }
+                }
+
+                @keyframes glowPulse {
+                    0%, 100% {
+                        opacity: 0.5;
+                        transform: scale(0.96);
+                    }
+                    50% {
+                        opacity: 1;
+                        transform: scale(1.04);
+                    }
+                }
+
+                @media (prefers-reduced-motion: reduce) {
+                    .profile-float,
+                    .profile-glow {
+                        animation: none !important;
+                    }
+
+                    .profile-card,
+                    .profile-image {
+                        transition: none !important;
+                    }
+                }
+            `}</style>
         </section>
     );
 };
